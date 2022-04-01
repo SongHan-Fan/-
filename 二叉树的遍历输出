@@ -1,0 +1,188 @@
+
+#include <stdio.h>
+#include <stdlib.h>
+typedef char DataType;
+typedef struct TreeNode
+{
+    DataType data;
+    struct TreeNode *lchild;
+    struct TreeNode *rchild;
+} TreeNode, *Tree;
+
+typedef Tree LinkDataType;
+
+typedef struct tag
+{
+    Tree p; //树的某一个节点地址
+    struct tag *pnext;
+} tag_t, *ptag_t;
+//队列的相关数据结构
+typedef struct LinkNode
+{
+    LinkDataType data;
+    struct LinkNode *next;
+} LinkNode;
+typedef struct
+{
+    LinkNode *front, *rear;
+} LinkQueue;
+//初始化队列
+void InitQueue(LinkQueue &Q)
+{
+    Q.front = Q.rear = (LinkNode *)malloc(sizeof(LinkNode));//节点类型申请节点储存空间
+    Q.front->next = NULL;//初始化Q.front的值为空
+}
+//判断队列是否为空
+bool IsEmpty(LinkQueue Q)
+{
+    if (Q.front == Q.rear)//如果头节点和尾节点相等
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+//入队
+void EnQueue(LinkQueue &Q, LinkDataType x)//尾插法
+{
+    LinkNode *s = (LinkNode *)malloc(sizeof(LinkNode));//为队尾节点申请一个空间
+    s->data = x;//将新申请的节点空间s给x
+    s->next = NULL;//s->next的域为空
+    Q.rear->next = s;//将插入的节点放在队尾
+    Q.rear = s;//重制新节点
+}
+//出队
+bool DeQueue(LinkQueue &Q, LinkDataType &x)
+{
+    if (Q.front == Q.rear)//满队
+    {
+        return false;
+    }
+    else
+    {
+        LinkNode *p = Q.front->next;//头节点什么都没存，所以头节点的下一个节点
+        x = p->data;
+        Q.front->next = p->next;
+        if (Q.rear == p)
+        {
+            Q.rear = Q.front;
+            free(p);
+            return true;
+        }
+    }
+    return true; 
+}
+//层序建树
+void BuildCharTree(Tree &T)//建树
+{
+    Tree pnew;//建立根节点
+    char x;//设置一个输入进去的数
+    ptag_t phead = NULL, ptail = NULL, pcur = NULL, listpnew = NULL;//将队列头和队列尾和pcur当前位置指针置为0
+    while (scanf("%c", &x) != EOF)//输入将要插入的数
+    {
+        if (x == '\n')//如果输入回车，就退出建树过程
+        {
+            break;//退出
+        }
+        //calloc申请空间并对空间进行初始化，赋值为0
+        //初始化节点
+        pnew = (Tree)calloc(1, sizeof(TreeNode));//为新节点申请大小为1的空间
+        pnew->data = x;//将输入的数放在新节点
+        listpnew = (ptag_t)calloc(1, sizeof(ptag_t));//为队列指针（此时指向的元素位置）申请一个大小为1的空间
+        listpnew->p = pnew;//将此时刚插入节点的位置给队列指针
+
+        if (NULL == T)
+        {
+            T = pnew;//树的根
+            phead = listpnew;//队列头
+            ptail = listpnew;//队列尾
+            pcur = listpnew;//队列
+            continue;
+        }
+        else 
+        {
+            //将新节点放入链表。尾插法
+            ptail->pnext = listpnew;
+            ptail = listpnew;
+        }
+        if (NULL == pcur->p->lchild)
+        {
+            //把新节点放到要插入节点的左边
+            pcur->p->lchild = pnew;
+        }
+        else if (NULL == pcur->p->rchild)
+        {
+            //把新节点放到要插入节点的右边
+            pcur->p->rchild = pnew;
+            //左右都放了节点后，pcur指向队列的下一个
+            pcur = pcur->pnext;
+        }
+    }
+}
+
+void preOrder(Tree T)//前序输出：就是深度优先遍历
+{
+    if (NULL != T)
+    {
+        putchar(T->data);//弹出此时的节点
+        preOrder(T->lchild);//递归调用本函数，访问这个节点的左孩子
+        preOrder(T->rchild);//递归调用本函数，访问这个节点的右孩子
+    }
+}
+
+void InOrder(Tree T)//中序输出
+{
+    if (NULL != T)
+    {
+        InOrder(T->lchild);//递归调用本函数，访问这个节点的左孩子
+        putchar(T->data);//弹出此时的节点
+        InOrder(T->rchild);//递归调用本函数，访问这个节点的右孩子
+    }
+}
+
+void BackOrder(Tree T)//后序输出
+{
+    if (NULL != T)
+    {
+        BackOrder(T->lchild);//递归调用本函数，访问这个节点的左孩子
+        BackOrder(T->rchild);//递归调用本函数，访问这个节点的右孩子
+        putchar(T->data);//弹出此时的节点
+    }
+}
+
+void LevelOrder(Tree T)//层次建树
+{
+    LinkQueue Q;//建立一个队列
+    InitQueue(Q);//初始化队列
+    Tree p;//建立一个树的节点
+    EnQueue(Q, T); //开始入队
+    while (!IsEmpty(Q))//如果队不为空
+    {
+        DeQueue(Q, p);//执行出队
+        putchar(p->data);//
+        if (p->lchild != NULL)//此时左孩子不为空
+            EnQueue(Q, p->lchild);//将
+        if (p->rchild != NULL)
+            EnQueue(Q, p->rchild);
+    }
+}
+int main()
+{
+    Tree T = NULL;
+    //层次建树
+    BuildCharTree(T);
+    //前序遍历
+    preOrder(T);
+    printf("\n");
+    //中序遍历
+    InOrder(T);
+    printf("\n");
+    //后序遍历
+    BackOrder(T);
+    printf("\n");
+    //层序遍历
+    LevelOrder(T);
+    return 0;
+}
